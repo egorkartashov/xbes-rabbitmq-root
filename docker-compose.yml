@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  products-api:
+    extends: 
+      file: ./xsolla-school-backend-2021-test/docker-compose.yml
+      service: products-api
+  products-db:
+    extends: 
+      file: ./xsolla-school-backend-2021-test/docker-compose.yml
+      service: products-db
+  pgadmin:
+    extends: 
+      file: ./xsolla-school-backend-2021-test/docker-compose.yml
+      service: pgadmin
+  rabbitmq:
+    image: rabbitmq
+    container_name: rabbitmq
+  url-checker:
+    build:
+      context: ./xbes-rabbitmq-consumer
+    container_name: url-checker
+    ports: 
+      - 8888:8000
