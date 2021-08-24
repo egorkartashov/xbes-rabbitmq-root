@@ -2,23 +2,57 @@ version: "3.8"
 
 services:
   products-api:
-    extends: 
-      file: ./xsolla-school-backend-2021-test/docker-compose.yml
-      service: products-api
+    build:
+      context: ./xsolla-school-backend-2021-test
+    container_name: products-api
+    restart: always
+    ports:
+    - 8000:8000
+    links:
+      - products-db
+    env_file: ./xsolla-school-backend-2021-test/.env
+    environment:
+      - PORT=${PORT:-8000}
+      - POSTGRES_HOST=${POSTGRES_HOST:-products-db}
+      - POSTGRES_DB=${POSTGRES_DB:-products}
+      - POSTGRES_USERNAME=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - RABBITMQ_ADDRESS=rabbitmq
   products-db:
-    extends: 
-      file: ./xsolla-school-backend-2021-test/docker-compose.yml
-      service: products-db
+    image: postgres:13.3-alpine
+    restart: always
+    container_name: products-db
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=products
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./data/db:/app/postgres/data
   pgadmin:
-    extends: 
-      file: ./xsolla-school-backend-2021-test/docker-compose.yml
-      service: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    container_name: pgadmin
+    ports:
+      - 80:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=user@domain.com
+      - PGADMIN_DEFAULT_PASSWORD=1q2w3e
   rabbitmq:
-    image: rabbitmq
+    build: 
+      context: ./rabbitmq
     container_name: rabbitmq
+    ports: 
+      - 5672:5672
+      - 15672:15672
   url-checker:
     build:
       context: ./xbes-rabbitmq-consumer
     container_name: url-checker
     ports: 
       - 8888:8000
+    env_file: 
+      ./xbes-rabbitmq-consumer/.env
+    environment: 
+      - RABBITMQ_ADDRESS=rabbitmq
